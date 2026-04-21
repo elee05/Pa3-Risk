@@ -16,6 +16,8 @@ import edu.bu.pas.risk.util.Registry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 
@@ -42,13 +44,19 @@ public class MyStateSensorArray
         System.out.println();
         System.out.println();
         System.out.println("getSensorValues called!");
-        HashMap<Integer,Integer> playerTerritories = new HashMap<>();
+        HashMap<Integer,Integer> playerTerritoryCounts = new HashMap<>();
+        HashMap<Integer,Set<Territory>> playerTerritorySets = new HashMap<>();
         HashMap<Integer,Integer> playerArmyCount = new HashMap<>();
 
         // looping through territory owner views to get territory and army count
         Registry<TerritoryOwnerView> owners = state.getTerritoryOwners();
         for (TerritoryOwnerView tov : owners) {
-            playerTerritories.put(tov.getOwner(), playerTerritories.getOrDefault(tov.getOwner(), 0) + 1);
+            playerTerritoryCounts.put(tov.getOwner(), playerTerritoryCounts.getOrDefault(tov.getOwner(), 0) + 1);
+
+            Set<Territory> territories = playerTerritorySets.getOrDefault(tov.getOwner(), new HashSet<>());
+            territories.add(tov.getTerritory());
+            playerTerritorySets.put(tov.getOwner(), territories);
+
             playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
         }   
         System.out.println();
@@ -65,7 +73,7 @@ public class MyStateSensorArray
             System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
         }
 
-        playerTerritories.forEach((key, value) -> {
+        playerTerritoryCounts.forEach((key, value) -> {
             System.out.println("Player: " + key + ", has : " + value + " territories");
         });
         playerArmyCount.forEach((key,value) -> {
@@ -78,7 +86,7 @@ public class MyStateSensorArray
 
 
         stateMatrix.set(0,0,state.getContinentsOwnedBy(this.getAgentId()).size());
-        stateMatrix.set(0,1,playerTerritories.get(this.getAgentId()));
+        stateMatrix.set(0,1,playerTerritoryCounts.get(this.getAgentId()));
         stateMatrix.set(0,2,playerArmyCount.get(this.getAgentId()));
         
 
@@ -100,7 +108,7 @@ public class MyStateSensorArray
         // ! most danger enemy army count
         // ! most dangeorus enemy
         // ! [xxxx] continent completion
-        // todo exposed territories
+        // ! exposed territories
 
 
         // continent completion process
@@ -176,7 +184,56 @@ public class MyStateSensorArray
         }
         System.out.println();
 
-        // todo exposed territories
+        //  EXPOSED territories
+
+        // loop through our player's territories (state.getTerritoriesOwnedBy)
+        // ----for each territory, look at its adjacent territories
+        // -------count how many are owned by hostiles
+        // -------tally up
+
+        Integer numExposedTerritories = 0;
+        Integer numAdjacentHostiles = 0;
+        Integer numAdj = 0;
+        Set<Territory> hostileTerritories = new HashSet<>();
+
+        for (Territory t : state.getTerritoriesOwnedBy(this.getAgentId())) {
+            Set<Territory> adjacents = t.adjacentTerritories();
+            Boolean inDanger = false;
+            for (Territory adTerritory : adjacents) {
+                if (!playerTerritorySets.get(this.getAgentId()).contains(adTerritory)) {
+                    hostileTerritories.add(adTerritory);
+                    numAdjacentHostiles +=1;
+                    inDanger = true;
+                }
+            }
+            if (inDanger) {
+                numExposedTerritories +=1;
+            }
+        }
+        numAdj = hostileTerritories.size();
+        System.out.println();
+        System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
+        System.out.println("cleaned adjacent hostiles: " + numAdj);
+        System.out.println("num exposed territories: " + numExposedTerritories);
+        System.out.println("hostile territories");
+        // for (Territory t : hostileTerritories) {
+        //     System.out.println(t.name());
+        // }
+        System.out.println();
+
+
+        stateMatrix.set(0, 11, numAdjacentHostiles);
+        stateMatrix.set(0,12,numAdj);
+        stateMatrix.set(0,13,numExposedTerritories);
+
+
+        // playerTerritorySets.forEach((key,value) -> {
+        //     System.out.println("player " + key + " has ");
+        //     for (Territory t : value) {
+        //         System.out.println(t.name());
+        //     }
+        //     System.out.println();
+        // });
        
 
 
