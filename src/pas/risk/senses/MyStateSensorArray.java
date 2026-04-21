@@ -85,10 +85,13 @@ public class MyStateSensorArray
         Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
 
 
-        stateMatrix.set(0,0,state.getContinentsOwnedBy(this.getAgentId()).size());
-        stateMatrix.set(0,1,playerTerritoryCounts.get(this.getAgentId()));
-        stateMatrix.set(0,2,playerArmyCount.get(this.getAgentId()));
-        
+        // stateMatrix.set(0,0,state.getContinentsOwnedBy(this.getAgentId()).size());
+        // stateMatrix.set(0,1,playerTerritoryCounts.get(this.getAgentId()));
+        // stateMatrix.set(0,2,playerArmyCount.get(this.getAgentId()));
+        stateMatrix.set(0, 0, state.getContinentsOwnedBy(this.getAgentId()).size());
+        stateMatrix.set(0, 1, playerTerritoryCounts.getOrDefault(this.getAgentId(), 0));
+        stateMatrix.set(0, 2, playerArmyCount.getOrDefault(this.getAgentId(), 0));
+                
 
         
         
@@ -130,12 +133,22 @@ public class MyStateSensorArray
 
        
         
+        // Registry<TerritoryOwnerView> tView = state.getTerritoryOwners();
+        // for (TerritoryOwnerView sTView : tView) {
+        //     // System.out.println("territory " + sTView.getTerritory().name()+  "owned by player " + sTView.getOwner());
+        //     Integer sTViewPlayer = sTView.getOwner();
+        //     Continent sTViewCont = sTView.getTerritory().continent();
+        //     playerContinentCompletionMap.get(sTViewPlayer).put(sTViewCont, playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont,0) + 1);
+        // }
+
         Registry<TerritoryOwnerView> tView = state.getTerritoryOwners();
         for (TerritoryOwnerView sTView : tView) {
-            // System.out.println("territory " + sTView.getTerritory().name()+  "owned by player " + sTView.getOwner());
+            if (sTView.isUnclaimed()) continue; // skip territories with no owner
+            
             Integer sTViewPlayer = sTView.getOwner();
             Continent sTViewCont = sTView.getTerritory().continent();
-            playerContinentCompletionMap.get(sTViewPlayer).put(sTViewCont, playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont,0) + 1);
+            playerContinentCompletionMap.get(sTViewPlayer).put(sTViewCont, 
+                playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont, 0) + 1);
         }
         //  System.out.println("playerContinentCompletionMap: ");
         System.out.println();
@@ -171,19 +184,39 @@ public class MyStateSensorArray
         }
         // adding continent completion to sensor vector
         // System.out.println("continents");
+        // for (int i = 0; i < state.getBoard().continents().size(); i++) {
+        //     // System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
+        //     int leader = continentLeaderMap.get(state.getBoard().continents().getById(i));
+        //     // System.out.println("leader is player " + leader );
+        //     Integer contCompletion = playerContinentCompletionMap.get(leader).get(state.getBoard().continents().getById(i));
+        //     // System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
+        //     Integer contSize = state.getBoard().continents().getById(i).territories().size();
+        //     // System.out.println("cont size: " + contSize);
+        //     stateMatrix.set(0, 5 + i, (float) contCompletion/ (float) contSize);
+        //     if (leader != this.getAgentId()) {
+        //         stateMatrix.set(0, 5 + i, (float) -contCompletion/ (float) contSize);
+        //     }
+        // }
         for (int i = 0; i < state.getBoard().continents().size(); i++) {
-            // System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
-            int leader = continentLeaderMap.get(state.getBoard().continents().getById(i));
-            // System.out.println("leader is player " + leader );
-            Integer contCompletion = playerContinentCompletionMap.get(leader).get(state.getBoard().continents().getById(i));
-            // System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
-            Integer contSize = state.getBoard().continents().getById(i).territories().size();
-            // System.out.println("cont size: " + contSize);
-            stateMatrix.set(0, 5 + i, (float) contCompletion/ (float) contSize);
-            if (leader != this.getAgentId()) {
-                stateMatrix.set(0, 5 + i, (float) -contCompletion/ (float) contSize);
-            }
+        Continent c = state.getBoard().continents().getById(i);
+        int leader = continentLeaderMap.get(c);
+        
+        if (leader == -1) {
+            // no one owns any territories in this continent yet
+            stateMatrix.set(0, 5 + i, 0.0);
+            continue;
         }
+        
+        int contCompletion = playerContinentCompletionMap.get(leader).get(c);
+        int contSize = c.territories().size();
+        
+        float value = (float) contCompletion / (float) contSize;
+        if (leader != this.getAgentId()) {
+            value = -value;
+        }
+        stateMatrix.set(0, 5 + i, value);
+    }
+
         System.out.println();
 
         //  EXPOSED territories
@@ -260,7 +293,8 @@ public class MyStateSensorArray
 
 
         
-
+        // todo cards held
+        // todo players remaining
 
         // System.out.println();
         // System.out.println("agentInventories");

@@ -50,11 +50,19 @@ public class MyActionSensorArray
         System.out.println();
         System.out.println();
 
+        // ? terminal flag
+        // ? player id
+        // ? action type flag
+        // ? ATTACK info: #armies in attack
+        // ? ATTACK info: #armies moving
+        // ? FORTIFY info: #armies moving
+
         int id=this.getAgentId();
         Matrix actionMatrix=Matrix.zeros(1,NUM_FEATURES);
         //decide if actions ends
+        actionMatrix.set(0, 0, id);
         if(!action.isTerminal()){
-            actionMatrix.set(0,0,1);
+            actionMatrix.set(0,1,1);
             System.out.println("action is terminal");
         }
 
@@ -63,9 +71,9 @@ public class MyActionSensorArray
             AttackAction a = (AttackAction) action;
             System.out.println("action is of type: ATTACK");
 
-            actionMatrix.set(0,1,1); // flag for attacking
-            actionMatrix.set(0,2,a.attackingArmies());
-            actionMatrix.set(0,3,a.movingArmies());
+            actionMatrix.set(0,2,1); // flag for attacking
+            actionMatrix.set(0,3,a.attackingArmies());
+            actionMatrix.set(0,4,a.movingArmies());
             // ? calculate army ratio
 
             // use a.attackingArmies(), a.from(), a.to(), etc.
@@ -77,7 +85,8 @@ public class MyActionSensorArray
             System.out.println("action is of type: FORTIFY");
 
 
-            actionMatrix.set(0,1,2);
+            actionMatrix.set(0,2,2); // flag for fortifying
+            actionMatrix.set(0,5,f.deltaArmies());
             // use f.from(), f.to(), f.deltaArmies()
 
 
@@ -86,7 +95,8 @@ public class MyActionSensorArray
             RedeemCardsAction r = (RedeemCardsAction) action;
             System.out.println("action is of type: REDEEM CARDS");
 
-            actionMatrix.set(0,1,3);
+            actionMatrix.set(0,2,3);
+            
             // cast and use
 
 
