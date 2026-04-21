@@ -43,7 +43,7 @@ public class MyStateSensorArray
 
         System.out.println();
         System.out.println();
-        System.out.println("getSensorValues called!");
+        System.out.println("getSTATESensorValues called!");
         HashMap<Integer,Integer> playerTerritoryCounts = new HashMap<>();
         HashMap<Integer,Set<Territory>> playerTerritorySets = new HashMap<>();
         HashMap<Integer,Integer> playerArmyCount = new HashMap<>();
@@ -65,20 +65,20 @@ public class MyStateSensorArray
 
 
         // **DEBUG** showing who owns what continent, territory, num armies
-        for (int i = 0; i < state.getNumAgents(); i++) {
-            List<Continent> contList = state.getContinentsOwnedBy(i);
-            for (Continent c : contList) {
-                System.out.println("player " + i + " owns " + c.name());
-            }
-            System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
-        }
+        // for (int i = 0; i < state.getNumAgents(); i++) {
+        //     List<Continent> contList = state.getContinentsOwnedBy(i);
+        //     for (Continent c : contList) {
+        //         System.out.println("player " + i + " owns " + c.name());
+        //     }
+        //     System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
+        // }
 
-        playerTerritoryCounts.forEach((key, value) -> {
-            System.out.println("Player: " + key + ", has : " + value + " territories");
-        });
-        playerArmyCount.forEach((key,value) -> {
-            System.out.println("player " + key + " has " + value + " armies");
-        });
+        // playerTerritoryCounts.forEach((key, value) -> {
+        //     System.out.println("Player: " + key + ", has : " + value + " territories");
+        // });
+        // playerArmyCount.forEach((key,value) -> {
+        //     System.out.println("player " + key + " has " + value + " armies");
+        // });
 
         // CREATING SENSOR MATRIX
 
@@ -95,7 +95,7 @@ public class MyStateSensorArray
         // setting the enemy army data
         playerArmyCount.remove(this.getAgentId());
         Integer maxArmyEnemy = Collections.max(playerArmyCount.entrySet(), Map.Entry.comparingByValue()).getKey();
-        System.out.println("biggest foe: " + maxArmyEnemy + " has army count: " + playerArmyCount.get(maxArmyEnemy));
+        // System.out.println("biggest foe: " + maxArmyEnemy + " has army count: " + playerArmyCount.get(maxArmyEnemy));
 
         stateMatrix.set(0,3,playerArmyCount.get(maxArmyEnemy));
         stateMatrix.set(0,4,maxArmyEnemy);
@@ -126,7 +126,7 @@ public class MyStateSensorArray
             playerContinentCompletionMap.put(i,counts );
         }
 
-        System.out.println("completion map completed");
+        // System.out.println("completion map completed");
 
        
         
@@ -137,21 +137,21 @@ public class MyStateSensorArray
             Continent sTViewCont = sTView.getTerritory().continent();
             playerContinentCompletionMap.get(sTViewPlayer).put(sTViewCont, playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont,0) + 1);
         }
-         System.out.println("playerContinentCompletionMap: ");
+        //  System.out.println("playerContinentCompletionMap: ");
         System.out.println();
 
 
 
-        playerContinentCompletionMap.forEach((key,value) -> {
-            System.out.println("player " + key );
+        // playerContinentCompletionMap.forEach((key,value) -> {
+        //     System.out.println("player " + key );
 
             
-            value.forEach((metaKey, metaValue) -> {
-                System.out.println("continent completion for " + metaKey.name() + " is: " + metaValue);
+        //     value.forEach((metaKey, metaValue) -> {
+        //         System.out.println("continent completion for " + metaKey.name() + " is: " + metaValue);
 
                 
-            });
-        });
+        //     });
+        // });
         
         HashMap<Continent, Integer> continentLeaderMap = new HashMap<>(); // continent -> playerId with most territories
 
@@ -170,15 +170,15 @@ public class MyStateSensorArray
             continentLeaderMap.put(c, leadingPlayer); // -1 means tied at 0
         }
         // adding continent completion to sensor vector
-        System.out.println("continents");
+        // System.out.println("continents");
         for (int i = 0; i < state.getBoard().continents().size(); i++) {
-            System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
+            // System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
             int leader = continentLeaderMap.get(state.getBoard().continents().getById(i));
-            System.out.println("leader is player " + leader );
+            // System.out.println("leader is player " + leader );
             Integer contCompletion = playerContinentCompletionMap.get(leader).get(state.getBoard().continents().getById(i));
-            System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
+            // System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
             Integer contSize = state.getBoard().continents().getById(i).territories().size();
-            System.out.println("cont size: " + contSize);
+            // System.out.println("cont size: " + contSize);
             stateMatrix.set(0, 5 + i, (float) contCompletion/ (float) contSize);
             if (leader != this.getAgentId()) {
                 stateMatrix.set(0, 5 + i, (float) -contCompletion/ (float) contSize);
@@ -213,11 +213,11 @@ public class MyStateSensorArray
             }
         }
         numAdj = hostileTerritories.size();
-        System.out.println();
-        System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
-        System.out.println("cleaned adjacent hostiles: " + numAdj);
-        System.out.println("num exposed territories: " + numExposedTerritories);
-        System.out.println("hostile territories");
+        // System.out.println();
+        // System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
+        // System.out.println("cleaned adjacent hostiles: " + numAdj);
+        // System.out.println("num exposed territories: " + numExposedTerritories);
+        // System.out.println("hostile territories");
         // for (Territory t : hostileTerritories) {
         //     System.out.println(t.name());
         // }
@@ -268,7 +268,25 @@ public class MyStateSensorArray
         // for (IAgent ia : iAList) {
         //     System.out.println("agent " + ia.agentId());
         // }
+        System.out.println("we own " + stateMatrix.get(0, 0) + " continents");
+        System.out.println("we own " + stateMatrix.get(0,1) + " territories");
+        System.out.println("we have " + stateMatrix.get(0, 2) + " armies");
+        System.out.println("our most dangerous enemy has " + stateMatrix.get(0, 3) + " armies");
+        System.out.println("our most dangerous enemy is " + stateMatrix.get(0, 4));
+        System.out.println("Asia is " + stateMatrix.get(0, 5) + " completed");
+        System.out.println("North America is " + stateMatrix.get(0, 6) + " completed");
+        System.out.println("South America is " + stateMatrix.get(0, 7) + " completed");
+        System.out.println("Africa is " + stateMatrix.get(0, 8) + " completed");
+        System.out.println("Europe is " + stateMatrix.get(0, 9) + " completed");
+        System.out.println("Australia is " + stateMatrix.get(0, 10) + " completed");
+        System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
+        System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
+        System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
 
+        // for (Continent c : state.getBoard().continents()) {
+        //     System.out.println(c.name());
+        // }
+        System.out.println();
         
         System.out.println("stateMatrix: " + stateMatrix.toString());
         return stateMatrix;  // row vector
