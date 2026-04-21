@@ -13,6 +13,7 @@ import edu.bu.pas.risk.territory.Territory;
 import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.util.Registry;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -98,10 +99,10 @@ public class MyStateSensorArray
         playerArmyCount.remove(this.getAgentId());
         
 
-        System.out.println("new army counts");
-        playerArmyCount.forEach((key,value) -> {
-            System.out.println("player " + key + " has " + value + " armies");
-        });
+        // System.out.println("new army counts");
+        // playerArmyCount.forEach((key,value) -> {
+        //     System.out.println("player " + key + " has " + value + " armies");
+        // });
         Integer maxArmyEnemy = Collections.max(playerArmyCount.entrySet(), Map.Entry.comparingByValue()).getKey();
         System.out.println("biggest foe: " + maxArmyEnemy + " has army count: " + playerArmyCount.get(maxArmyEnemy));
 
@@ -109,13 +110,81 @@ public class MyStateSensorArray
         stateMatrix.set(0,4,maxArmyEnemy);
         
 
-        // ! player territory count
+       
         // ! player continent count
+         // ! player territory count
         // ! player army count
         // ! most danger enemy army count
         // ! most dangeorus enemy
         // ! [xxxx] continent completion
-        // ! exposed territories
+        // todo exposed territories
+
+        // for each playercreate masp from cont to terrirotires they own
+
+        HashMap<Integer, HashMap<Continent,Integer>> playerContinentCompletionMap = new HashMap<>();
+
+        for (int i = 0; i < state.getNumAgents(); i++) {
+            HashMap<Continent,Integer> counts = new HashMap<>();
+            for (Continent c : state.getBoard().continents()) {
+                counts.put(c, 0);
+            }
+            
+            playerContinentCompletionMap.put(i,counts );
+        }
+
+        System.out.println("completion map completed");
+
+       
+        
+        Registry<TerritoryOwnerView> tView = state.getTerritoryOwners();
+        for (TerritoryOwnerView sTView : tView) {
+            // System.out.println("territory " + sTView.getTerritory().name()+  "owned by player " + sTView.getOwner());
+            Integer sTViewPlayer = sTView.getOwner();
+            Continent sTViewCont = sTView.getTerritory().continent();
+            playerContinentCompletionMap.get(sTViewPlayer).put(sTViewCont, playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont,0) + 1);
+        }
+         System.out.println("playerContinentCompletionMap: ");
+        System.out.println();
+
+
+
+        playerContinentCompletionMap.forEach((key,value) -> {
+            System.out.println("player " + key );
+
+            
+            value.forEach((metaKey, metaValue) -> {
+                System.out.println("continent completion for " + metaKey.name() + " is: " + metaValue);
+
+                
+            });
+        });
+        
+        HashMap<Continent, Integer> continentLeaderMap = new HashMap<>(); // continent -> playerId with most territories
+
+        for (Continent c : state.getBoard().continents()) {
+            int leadingPlayer = -1;
+            int maxCount = 0;
+
+            for (int i = 0; i < state.getNumAgents(); i++) {
+                int count = playerContinentCompletionMap.get(i).get(c);
+                if (count > maxCount) {
+                    maxCount = count;
+                    leadingPlayer = i;
+                }
+            }
+
+            continentLeaderMap.put(c, leadingPlayer); // -1 means tied at 0
+        }
+
+        // who leads in continent c?
+        
+
+        List<String> continents = List.of("Asia","North America", "South America", "Africa", "Europe", "Australia") ;
+
+    
+
+        //  map of players to [continents to [terriroties they own]]
+        // playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
 
 
 
@@ -124,17 +193,39 @@ public class MyStateSensorArray
 
 
         
-        // todo continent completion
+        
         // todo exposed territories
 
         System.out.println("continents");
-        for (Continent c : state.getBoard().continents()) {
-            System.out.println("continent: " + c.name());
-            // for (Territory t : c.territories()) {
-            //     System.out.println(t.name() );
-            // }
-            System.out.println();
+        for (int i = 0; i < state.getBoard().continents().size(); i++) {
+            System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
+            int leader = continentLeaderMap.get(state.getBoard().continents().getById(i));
+            System.out.println("leader is player " + leader );
+            Integer contCompletion = playerContinentCompletionMap.get(leader).get(state.getBoard().continents().getById(i));
+            System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
+            stateMatrix.set(0, 5 + i, contCompletion);
+            if (leader != this.getAgentId()) {
+                stateMatrix.set(0, 5 + i, -contCompletion);
+            }
         }
+        // for (Continent c : state.getBoard().continents()) {
+        //     System.out.println("continent: " + c.name());
+        //     int leader = continentLeaderMap.get(c);
+
+        //     // am I the leader?
+        //     if (leader == this.getAgentId()) {
+        //         System.out.println("i am the leader");
+        //     }
+
+        //     // is an enemy leading?
+        //     if (leader != this.getAgentId() && leader != -1)  {
+        //         System.out.println("player " + leader + " is the leader");
+        //     }
+        //     // for (Territory t : c.territories()) {
+        //     //     System.out.println(t.name() );
+        //     // }
+        //     System.out.println();
+        // }
         System.out.println();
 
         // Registry<TerritoryOwnerView> tViewReg = state.getTerritoryOwners();
@@ -168,14 +259,20 @@ public class MyStateSensorArray
         // state.getNumAgents() → int
         // state.getBoard().continents() → Collection<Continent>
         //   each continent.territories() → iterable of Territory
-        System.out.println("stateMatrix: " + stateMatrix.toString());
-        System.out.println();
-        System.out.println("agentInventories");
-        List<IAgent> iAList = state.getAgents();
-        for (IAgent ia : iAList) {
-            System.out.println("agent " + ia.agentId());
-        }
 
+
+        
+
+
+        // System.out.println();
+        // System.out.println("agentInventories");
+        // List<IAgent> iAList = state.getAgents();
+        // for (IAgent ia : iAList) {
+        //     System.out.println("agent " + ia.agentId());
+        // }
+
+        
+        System.out.println("stateMatrix: " + stateMatrix.toString());
         return stateMatrix;  // row vector
     }
 
