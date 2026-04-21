@@ -26,7 +26,7 @@ import java.util.List;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 25;
+    public static final int NUM_FEATURES = 15;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -52,9 +52,7 @@ public class MyStateSensorArray
         System.out.println();
         System.out.println();
 
-        playerArmyCount.forEach((key,value) -> {
-            System.out.println("player " + key + " has " + value + " armies");
-        });
+       
 
         // System.out.println("Num continents: " + state.getBoard().continents().size());
         // Registry<Continent> conts = state.getBoard().continents();
@@ -63,24 +61,22 @@ public class MyStateSensorArray
         // }   
 
 
-        playerTerritories.forEach((key, value) -> {
-            System.out.println("Player: " + key + ", has : " + value + " territories");
-        });
-
-        System.out.println();
-        System.out.println();
+       
 
 
-        // ? num territories owned by each player
-        // ? num continents owned 
+    
 
         Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
-        playerTerritories.forEach((key, value) -> {
-            // System.out.println("setting territories for player " 
-            //     + key
-            // );
-            stateMatrix.set(0, key + 1, value);
-        });
+        stateMatrix.set(0,0,playerTerritories.get(this.getAgentId()));
+        stateMatrix.set(0,1,playerArmyCount.get(this.getAgentId()));
+        stateMatrix.set(0,2,state.getContinentsOwnedBy(this.getAgentId()).size());
+
+        // playerTerritories.forEach((key, value) -> {
+        //     // System.out.println("setting territories for player " 
+        //     //     + key
+        //     // );
+        //     stateMatrix.set(0, key + 1, value);
+        // });
 
         for (int i = 0; i < state.getNumAgents(); i++) {
             List<Continent> contList = state.getContinentsOwnedBy(i);
@@ -88,10 +84,30 @@ public class MyStateSensorArray
                 System.out.println("player " + i + " owns " + c.name());
             }
             System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
-            stateMatrix.set(0, 7 +  i, state.getContinentsOwnedBy(i).size());
-            stateMatrix.set(0, 13 + i,playerArmyCount.get(i));
+            // stateMatrix.set(0, 7 +  i, state.getContinentsOwnedBy(i).size());
+            // stateMatrix.set(0, 13 + i,playerArmyCount.get(i));
         }
 
+         playerTerritories.forEach((key, value) -> {
+            System.out.println("Player: " + key + ", has : " + value + " territories");
+        });
+
+
+
+        // System.out.println();
+        // System.out.println();
+
+         playerArmyCount.forEach((key,value) -> {
+            System.out.println("player " + key + " has " + value + " armies");
+        });
+
+        // ! player territory count
+        // ! player continent count
+        // ! player army count
+        // ! most danger enemy army count
+        // ! [xxxx] continent completion
+        // ! exposed territories
+
 
 
         
@@ -99,19 +115,18 @@ public class MyStateSensorArray
 
 
         
-        // todo army budget
-        // todo armies per turn 
+        // todo continent completion
         // todo exposed territories
 
-        // System.out.println("continents");
-        // for (Continent c : state.getBoard().continents()) {
-        //     System.out.println("continent: " + c.name());
-        //     for (Territory t : c.territories()) {
-        //         System.out.println(t.name() + "owned by player: " + );
-        //     }
-        //     System.out.println();
-        // }
-        // System.out.println();
+        System.out.println("continents");
+        for (Continent c : state.getBoard().continents()) {
+            System.out.println("continent: " + c.name());
+            // for (Territory t : c.territories()) {
+            //     System.out.println(t.name() );
+            // }
+            System.out.println();
+        }
+        System.out.println();
 
         // Registry<TerritoryOwnerView> tViewReg = state.getTerritoryOwners();
         // System.out.println("tViewReg: ");
