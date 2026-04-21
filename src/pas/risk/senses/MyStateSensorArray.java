@@ -26,7 +26,7 @@ import java.util.List;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 15;
+    public static final int NUM_FEATURES = 25;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -36,18 +36,25 @@ public class MyStateSensorArray
     public Matrix getSensorValues(final GameView state)
     {
 
+        System.out.println();
+        System.out.println();
         System.out.println("getSensorValues called!");
         HashMap<Integer,Integer> playerTerritories = new HashMap<>();
+        HashMap<Integer,Integer> playerArmyCount = new HashMap<>();
+
         System.out.println("Num territories: " + state.getBoard().territories().size());
         Registry<TerritoryOwnerView> owners = state.getTerritoryOwners();
         for (TerritoryOwnerView tov : owners) {
-            System.out.println(tov.getTerritory().name() + " owned by " + tov.getOwner() + " with " + tov.getArmies() + " armies");
+            // System.out.println(tov.getTerritory().name() + " owned by " + tov.getOwner() + " with " + tov.getArmies() + " armies");
             playerTerritories.put(tov.getOwner(), playerTerritories.getOrDefault(tov.getOwner(), 0) + 1);
+            playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
         }   
         System.out.println();
         System.out.println();
-        System.out.println();
-        System.out.println();
+
+        playerArmyCount.forEach((key,value) -> {
+            System.out.println("player " + key + " has " + value + " armies");
+        });
 
         // System.out.println("Num continents: " + state.getBoard().continents().size());
         // Registry<Continent> conts = state.getBoard().continents();
@@ -65,12 +72,13 @@ public class MyStateSensorArray
 
 
         // ? num territories owned by each player
+        // ? num continents owned 
 
         Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
         playerTerritories.forEach((key, value) -> {
-            System.out.println("setting territories for player " 
-                + key
-            );
+            // System.out.println("setting territories for player " 
+            //     + key
+            // );
             stateMatrix.set(0, key + 1, value);
         });
 
@@ -80,9 +88,20 @@ public class MyStateSensorArray
                 System.out.println("player " + i + " owns " + c.name());
             }
             System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
-            System.out.println();
-            stateMatrix.set(0, state.getNumAgents() + 1 +  i, state.getContinentsOwnedBy(i).size());
+            stateMatrix.set(0, 7 +  i, state.getContinentsOwnedBy(i).size());
+            stateMatrix.set(0, 13 + i,playerArmyCount.get(i));
         }
+
+
+
+        
+
+
+
+        
+        // todo army budget
+        // todo armies per turn 
+        // todo exposed territories
 
         // System.out.println("continents");
         // for (Continent c : state.getBoard().continents()) {
@@ -103,12 +122,6 @@ public class MyStateSensorArray
 
         // System.out.println("examining continents owned by player 0");
 
-
-
-
-        // todo num continents owned
-        // todo army budget
-        // todo armies per turn
         
        
 
@@ -132,12 +145,23 @@ public class MyStateSensorArray
         // state.getBoard().continents() → Collection<Continent>
         //   each continent.territories() → iterable of Territory
         System.out.println("stateMatrix: " + stateMatrix.toString());
+        System.out.println();
+        System.out.println("agentInventories");
+        List<IAgent> iAList = state.getAgents();
+        for (IAgent ia : iAList) {
+            System.out.println("agent " + ia.agentId());
+        }
 
         return stateMatrix;  // row vector
     }
 
     public static void main(String[] args) {
         MyStateSensorArray sensor = new MyStateSensorArray(0);
+        System.out.println("sensor class message");
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
         // you can't easily construct a GameView manually,
         // so the real test has to go through SingleGameEval or SequentialTrain
     }
