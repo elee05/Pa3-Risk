@@ -6,6 +6,10 @@ import edu.bu.jmat.Matrix;
 
 import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.action.Action;
+import edu.bu.pas.risk.action.AttackAction;
+import edu.bu.pas.risk.action.FortifyAction;
+import edu.bu.pas.risk.action.NoAction;
+import edu.bu.pas.risk.action.RedeemCardsAction;
 import edu.bu.pas.risk.agent.senses.ActionSensorArray;
 
 
@@ -32,19 +36,87 @@ public class MyActionSensorArray
     {
         //return Matrix.randn(1, NUM_FEATURES); // row vector
 
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        System.out.println("getACTIONSensorValues called");
+        System.out.println("getACTIONSensorValues called");
+        System.out.println("getACTIONSensorValues called");
+        System.out.println("getACTIONSensorValues called");
+        System.out.println("getACTIONSensorValues called");
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
         int id=this.getAgentId();
-        Matrix m=Matrix.zeros(1,NUM_FEATURES);
+        Matrix actionMatrix=Matrix.zeros(1,NUM_FEATURES);
         //decide if actions ends
         if(!action.isTerminal()){
-            m.set(0,0,0.0);
-        }else{
-            m.set(0,0,1.0);
-        }// game features 
-        m.set(0,1,(double)actionCounter);
-         m.set(0,2,(double)state.getTerritoriesOwnedBy(id).size());
-         m.set(0,3,(double)state.getContinentsOwnedBy(id).size());
-        m.set(0,4,(double)state.getBonusArmiesFor(id));
-        //deicde the type of action todo
+            actionMatrix.set(0,0,1);
+            System.out.println("action is terminal");
+        }
+
+        // !ACTION is ATTACK
+        if (action instanceof AttackAction) {
+            AttackAction a = (AttackAction) action;
+            System.out.println("action is of type: ATTACK");
+
+            actionMatrix.set(0,1,1); // flag for attacking
+            actionMatrix.set(0,2,a.attackingArmies());
+            actionMatrix.set(0,3,a.movingArmies());
+            // ? calculate army ratio
+
+            // use a.attackingArmies(), a.from(), a.to(), etc.
+
+
+        // !ACTION is FORTIFY
+        } else if (action instanceof FortifyAction) {
+            FortifyAction f = (FortifyAction) action;
+            System.out.println("action is of type: FORTIFY");
+
+
+            actionMatrix.set(0,1,2);
+            // use f.from(), f.to(), f.deltaArmies()
+
+
+        // !ACTION is REEDEMCARDS
+        } else if (action instanceof RedeemCardsAction) {
+            RedeemCardsAction r = (RedeemCardsAction) action;
+            System.out.println("action is of type: REDEEM CARDS");
+
+            actionMatrix.set(0,1,3);
+            // cast and use
+
+
+        // !ACTION is  NOACTION
+        } else if (action instanceof NoAction) {
+            System.out.println("action is of type: NO ACTION");
+            // terminal / pass action
+        }
+
+        
+
+        System.out.println("action matrix: " + actionMatrix.toString());
+        return actionMatrix;
+
+        // This encodes a specific action. The action can be an AttackAction, FortifyAction, RedeemCardsAction, or NoAction. You have 10 features. The key insight: you need to handle the different action types.
+        // Good features:
+
+        // Action type — one-hot encode (attack=1 0 0 0, fortify=0 1 0 0, redeem=0 0 1 0, no-op=0 0 0 1)
+        // For attacks (AttackAction):
+
+        // Attacking armies (action.attackingArmies())
+        // Moving armies after winning (action.movingArmies())
+        // Attacker army count at from() territory
+        // Defender army count at to() territory
+        // Army ratio: attacker/defender (is this attack favorable?)
+        // Whether the target territory would complete a continent for you
+
+
+        // Action counter (normalized) — how many actions you've taken this turn so far
+        // Is terminal — action.isTerminal()
       
          
          
