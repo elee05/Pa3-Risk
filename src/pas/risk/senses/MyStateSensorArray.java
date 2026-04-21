@@ -31,7 +31,7 @@ import java.util.Map;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 15;
+    public static final int NUM_FEATURES = 14;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -103,11 +103,13 @@ public class MyStateSensorArray
 
        
         // ! player continent count
-         // ! player territory count
+        // ! player territory count
         // ! player army count
         // ! most danger enemy army count
         // ! most dangeorus enemy
-        // ! [xxxx] continent completion
+        // ! [6] continent completion
+        // ! total number of adjacent enemies(by how many of ours they touch)
+        // ! total number of adjacent enemies(removing double counting)
         // ! exposed territories
 
 
