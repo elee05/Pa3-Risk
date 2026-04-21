@@ -159,17 +159,7 @@ public class MyStateSensorArray
 
             continentLeaderMap.put(c, leadingPlayer); // -1 means tied at 0
         }
-
-
-
-        
-
-
-
-        
-        
-        // todo exposed territories
-
+        // adding continent completion to sensor vector
         System.out.println("continents");
         for (int i = 0; i < state.getBoard().continents().size(); i++) {
             System.out.println("continent: " + state.getBoard().continents().getById(i).name() );
@@ -177,41 +167,16 @@ public class MyStateSensorArray
             System.out.println("leader is player " + leader );
             Integer contCompletion = playerContinentCompletionMap.get(leader).get(state.getBoard().continents().getById(i));
             System.out.println(state.getBoard().continents().getById(i).name() +" completion: " + contCompletion);
-            stateMatrix.set(0, 5 + i, contCompletion);
+            Integer contSize = state.getBoard().continents().getById(i).territories().size();
+            System.out.println("cont size: " + contSize);
+            stateMatrix.set(0, 5 + i, (float) contCompletion/ (float) contSize);
             if (leader != this.getAgentId()) {
-                stateMatrix.set(0, 5 + i, -contCompletion);
+                stateMatrix.set(0, 5 + i, (float) -contCompletion/ (float) contSize);
             }
         }
-        // for (Continent c : state.getBoard().continents()) {
-        //     System.out.println("continent: " + c.name());
-        //     int leader = continentLeaderMap.get(c);
-
-        //     // am I the leader?
-        //     if (leader == this.getAgentId()) {
-        //         System.out.println("i am the leader");
-        //     }
-
-        //     // is an enemy leading?
-        //     if (leader != this.getAgentId() && leader != -1)  {
-        //         System.out.println("player " + leader + " is the leader");
-        //     }
-        //     // for (Territory t : c.territories()) {
-        //     //     System.out.println(t.name() );
-        //     // }
-        //     System.out.println();
-        // }
         System.out.println();
 
-        // Registry<TerritoryOwnerView> tViewReg = state.getTerritoryOwners();
-        // System.out.println("tViewReg: ");
-        // for (TerritoryOwnerView tView : tViewReg) {
-        //     System.out.println(tView.getOwner());
-        //     System.out.println(tView.name());
-        // }
-
-        // System.out.println("examining continents owned by player 0");
-
-        
+        // todo exposed territories
        
 
 
