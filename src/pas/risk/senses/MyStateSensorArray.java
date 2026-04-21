@@ -45,64 +45,47 @@ public class MyStateSensorArray
         HashMap<Integer,Integer> playerTerritories = new HashMap<>();
         HashMap<Integer,Integer> playerArmyCount = new HashMap<>();
 
-        System.out.println("Num territories: " + state.getBoard().territories().size());
+        // looping through territory owner views to get territory and army count
         Registry<TerritoryOwnerView> owners = state.getTerritoryOwners();
         for (TerritoryOwnerView tov : owners) {
-            // System.out.println(tov.getTerritory().name() + " owned by " + tov.getOwner() + " with " + tov.getArmies() + " armies");
             playerTerritories.put(tov.getOwner(), playerTerritories.getOrDefault(tov.getOwner(), 0) + 1);
             playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
         }   
         System.out.println();
         System.out.println();
 
-       
-
-        // System.out.println("Num continents: " + state.getBoard().continents().size());
-        // Registry<Continent> conts = state.getBoard().continents();
-        // for (Continent c : conts) {
-        //     System.out.println(c.name());
-        // }   
 
 
-        // playerTerritories.forEach((key, value) -> {
-        //     // System.out.println("setting territories for player " 
-        //     //     + key
-        //     // );
-        //     stateMatrix.set(0, key + 1, value);
-        // });
-
+        // **DEBUG** showing who owns what continent, territory, num armies
         for (int i = 0; i < state.getNumAgents(); i++) {
             List<Continent> contList = state.getContinentsOwnedBy(i);
             for (Continent c : contList) {
                 System.out.println("player " + i + " owns " + c.name());
             }
             System.out.println("player " + i + " owns: " + state.getContinentsOwnedBy(i).size() + " continents");
-            // stateMatrix.set(0, 7 +  i, state.getContinentsOwnedBy(i).size());
-            // stateMatrix.set(0, 13 + i,playerArmyCount.get(i));
         }
 
-         playerTerritories.forEach((key, value) -> {
+        playerTerritories.forEach((key, value) -> {
             System.out.println("Player: " + key + ", has : " + value + " territories");
         });
-
-
-         playerArmyCount.forEach((key,value) -> {
+        playerArmyCount.forEach((key,value) -> {
             System.out.println("player " + key + " has " + value + " armies");
         });
 
+        // CREATING SENSOR MATRIX
+
         Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
+
+
         stateMatrix.set(0,0,state.getContinentsOwnedBy(this.getAgentId()).size());
         stateMatrix.set(0,1,playerTerritories.get(this.getAgentId()));
         stateMatrix.set(0,2,playerArmyCount.get(this.getAgentId()));
         
 
-        playerArmyCount.remove(this.getAgentId());
         
-
-        // System.out.println("new army counts");
-        // playerArmyCount.forEach((key,value) -> {
-        //     System.out.println("player " + key + " has " + value + " armies");
-        // });
+        
+        // setting the enemy army data
+        playerArmyCount.remove(this.getAgentId());
         Integer maxArmyEnemy = Collections.max(playerArmyCount.entrySet(), Map.Entry.comparingByValue()).getKey();
         System.out.println("biggest foe: " + maxArmyEnemy + " has army count: " + playerArmyCount.get(maxArmyEnemy));
 
@@ -119,7 +102,8 @@ public class MyStateSensorArray
         // ! [xxxx] continent completion
         // todo exposed territories
 
-        // for each playercreate masp from cont to terrirotires they own
+
+        // continent completion process
 
         HashMap<Integer, HashMap<Continent,Integer>> playerContinentCompletionMap = new HashMap<>();
 
@@ -175,16 +159,6 @@ public class MyStateSensorArray
 
             continentLeaderMap.put(c, leadingPlayer); // -1 means tied at 0
         }
-
-        // who leads in continent c?
-        
-
-        List<String> continents = List.of("Asia","North America", "South America", "Africa", "Europe", "Australia") ;
-
-    
-
-        //  map of players to [continents to [terriroties they own]]
-        // playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
 
 
 
