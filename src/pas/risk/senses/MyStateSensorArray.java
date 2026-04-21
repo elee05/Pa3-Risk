@@ -13,8 +13,10 @@ import edu.bu.pas.risk.territory.Territory;
 import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.util.Registry;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 // JAVA PROJECT IMPORTS
@@ -61,16 +63,6 @@ public class MyStateSensorArray
         // }   
 
 
-       
-
-
-    
-
-        Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
-        stateMatrix.set(0,0,playerTerritories.get(this.getAgentId()));
-        stateMatrix.set(0,1,playerArmyCount.get(this.getAgentId()));
-        stateMatrix.set(0,2,state.getContinentsOwnedBy(this.getAgentId()).size());
-
         // playerTerritories.forEach((key, value) -> {
         //     // System.out.println("setting territories for player " 
         //     //     + key
@@ -93,18 +85,35 @@ public class MyStateSensorArray
         });
 
 
-
-        // System.out.println();
-        // System.out.println();
-
          playerArmyCount.forEach((key,value) -> {
             System.out.println("player " + key + " has " + value + " armies");
         });
+
+        Matrix stateMatrix = Matrix.zeros(1, NUM_FEATURES);
+        stateMatrix.set(0,0,state.getContinentsOwnedBy(this.getAgentId()).size());
+        stateMatrix.set(0,1,playerTerritories.get(this.getAgentId()));
+        stateMatrix.set(0,2,playerArmyCount.get(this.getAgentId()));
+        
+
+        playerArmyCount.remove(this.getAgentId());
+        
+
+        System.out.println("new army counts");
+        playerArmyCount.forEach((key,value) -> {
+            System.out.println("player " + key + " has " + value + " armies");
+        });
+        Integer maxArmyEnemy = Collections.max(playerArmyCount.entrySet(), Map.Entry.comparingByValue()).getKey();
+        System.out.println("biggest foe: " + maxArmyEnemy + " has army count: " + playerArmyCount.get(maxArmyEnemy));
+
+        stateMatrix.set(0,3,playerArmyCount.get(maxArmyEnemy));
+        stateMatrix.set(0,4,maxArmyEnemy);
+        
 
         // ! player territory count
         // ! player continent count
         // ! player army count
         // ! most danger enemy army count
+        // ! most dangeorus enemy
         // ! [xxxx] continent completion
         // ! exposed territories
 
