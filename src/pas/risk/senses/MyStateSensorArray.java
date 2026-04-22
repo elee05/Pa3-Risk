@@ -10,6 +10,7 @@ import edu.bu.pas.risk.agent.IAgent;
 import edu.bu.pas.risk.agent.senses.StateSensorArray;
 import edu.bu.pas.risk.territory.Continent;
 import edu.bu.pas.risk.territory.Territory;
+import edu.bu.pas.risk.territory.TerritoryCard;
 import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.util.Registry;
 
@@ -31,7 +32,7 @@ import java.util.Map;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 14;
+    public static final int NUM_FEATURES = 17;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -291,7 +292,23 @@ public class MyStateSensorArray
         // state.getBoard().continents() → Collection<Continent>
         //   each continent.territories() → iterable of Territory
 
+        List<TerritoryCard> myCards = state.getAgentInventory(this.getAgentId());
+        // total number of cards in hand (normalized by max hand size ~44)
+        float cardCount = (float) myCards.size() / (float) 44.0;
 
+        // number of wild cards
+        double wildCount = myCards.stream()
+            .filter(TerritoryCard::isWild)
+            .count();
+
+        // whether I can currently make a valid trade
+        double canTrade = TerritoryCard.hasValidTrade(myCards) ? 1.0 : 0.0;
+
+        
+
+        stateMatrix.set(0, 14, cardCount);
+        stateMatrix.set(0,15,wildCount);
+        stateMatrix.set(0, 16, canTrade);
         
         // todo cards held
         // todo players remaining
@@ -316,6 +333,9 @@ public class MyStateSensorArray
         System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
         System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
         System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
+        System.out.println("our hand size capacity: " + stateMatrix.get(0, 14));
+        System.out.println("we have " + stateMatrix.get(0, 15) + " wild cards");
+        System.out.println("can trade: " + stateMatrix.get(0, 16) );
 
         // for (Continent c : state.getBoard().continents()) {
         //     System.out.println(c.name());

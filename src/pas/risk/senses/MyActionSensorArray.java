@@ -7,11 +7,13 @@ import edu.bu.jmat.Matrix;
 import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.action.Action;
 import edu.bu.pas.risk.action.AttackAction;
+import edu.bu.pas.risk.territory.Territory;
+import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.action.FortifyAction;
 import edu.bu.pas.risk.action.NoAction;
 import edu.bu.pas.risk.action.RedeemCardsAction;
 import edu.bu.pas.risk.agent.senses.ActionSensorArray;
-
+import edu.bu.pas.risk.util.Registry;
 
 // JAVA PROJECT IMPORTS
 
@@ -50,12 +52,13 @@ public class MyActionSensorArray
         System.out.println();
         System.out.println();
 
-        // ? terminal flag
-        // ? player id
-        // ? action type flag
-        // ? ATTACK info: #armies in attack
-        // ? ATTACK info: #armies moving
-        // ? FORTIFY info: #armies moving
+        // ? terminal flag                      0
+        // ? player id                          1
+        // ? action type flag                   2  (1:Attack, 2:Fortify,3:Redeem Cards)
+        // ? ATTACK info: #armies in attack     3
+        // ? ATTACK info: #armies moving        4
+        // ? ATTACK info: #army ratio           5
+        // ? FORTIFY info: #armies moving       6
 
         int id=this.getAgentId();
         Matrix actionMatrix=Matrix.zeros(1,NUM_FEATURES);
@@ -74,7 +77,25 @@ public class MyActionSensorArray
             actionMatrix.set(0,2,1); // flag for attacking
             actionMatrix.set(0,3,a.attackingArmies());
             actionMatrix.set(0,4,a.movingArmies());
-            // ? calculate army ratio
+
+            Territory from  = a.from();
+            Territory to = a.to();
+
+            Integer defendingArmies = 0;
+
+            Registry<TerritoryOwnerView> tview = state.getTerritoryOwners();
+            for (TerritoryOwnerView tOView : tview) {
+                if (tOView.getTerritory() == to) {
+                    defendingArmies = tOView.getArmies();
+                }
+            }
+
+            float armyRatio = (float) a.attackingArmies() / (float) defendingArmies;
+            
+            actionMatrix.set(0,5,armyRatio);
+
+
+            // todo calculate army ratio
 
             // use a.attackingArmies(), a.from(), a.to(), etc.
 
@@ -86,7 +107,7 @@ public class MyActionSensorArray
 
 
             actionMatrix.set(0,2,2); // flag for fortifying
-            actionMatrix.set(0,5,f.deltaArmies());
+            actionMatrix.set(0,6,f.deltaArmies());
             // use f.from(), f.to(), f.deltaArmies()
 
 
