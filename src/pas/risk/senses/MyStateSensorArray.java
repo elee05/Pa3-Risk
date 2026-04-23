@@ -32,7 +32,7 @@ import java.util.Map;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 17;
+    public static final int NUM_FEATURES = 18;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -233,20 +233,42 @@ public class MyStateSensorArray
         Integer numAdj = 0;
         Set<Territory> hostileTerritories = new HashSet<>();
 
+        // looop through territories connected to enemies
+        //  -- for each one, calculate the army ratio
+        //  -- average out
+        Double armyCompetitionRatioTotal = 0.0;
         for (Territory t : state.getTerritoriesOwnedBy(this.getAgentId())) {
+            // Registry<TerritoryOwnerView> tView = state.getTerritoryOwners();
+            Integer ourTerritoryarmies = 0;
+            for (TerritoryOwnerView sTv : tView) {
+                if (sTv.getTerritory() == t) {
+                    ourTerritoryarmies = sTv.getArmies();
+                }
+            }
+        
             Set<Territory> adjacents = t.adjacentTerritories();
             Boolean inDanger = false;
+            Integer competingTerritoryArmies = 0;
             for (Territory adTerritory : adjacents) {
                 if (!playerTerritorySets.get(this.getAgentId()).contains(adTerritory)) {
                     hostileTerritories.add(adTerritory);
                     numAdjacentHostiles +=1;
                     inDanger = true;
+
+                    for (TerritoryOwnerView sTv : tView) {
+                        if (sTv.getTerritory() == adTerritory) {
+                            competingTerritoryArmies += sTv.getArmies();
+                        }
+                    }
                 }
             }
+            armyCompetitionRatioTotal += (double) ourTerritoryarmies / (double) competingTerritoryArmies;
             if (inDanger) {
                 numExposedTerritories +=1;
             }
         }
+
+        Double  balancedArmyCompRatio = armyCompetitionRatioTotal / (double) state.getTerritoriesOwnedBy(this.getAgentId()).size();
         numAdj = hostileTerritories.size();
         // System.out.println();
         // System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
@@ -262,6 +284,7 @@ public class MyStateSensorArray
         stateMatrix.set(0, 11, numAdjacentHostiles);
         stateMatrix.set(0,12,numAdj);
         stateMatrix.set(0,13,numExposedTerritories);
+        stateMatrix.set(0,14,balancedArmyCompRatio);
 
 
         // playerTerritorySets.forEach((key,value) -> {
@@ -307,12 +330,11 @@ public class MyStateSensorArray
 
         
 
-        stateMatrix.set(0, 14, cardCount);
-        stateMatrix.set(0,15,wildCount);
-        stateMatrix.set(0, 16, canTrade);
+        stateMatrix.set(0, 15, cardCount);
+        stateMatrix.set(0,17,wildCount);
+        stateMatrix.set(0, 18, canTrade);
         
-        // todo cards held
-        // todo players remaining
+        // TODO competeting enemies ratio
 
         // System.out.println();
         // System.out.println("agentInventories");
@@ -324,16 +346,20 @@ public class MyStateSensorArray
         System.out.println("we own " + stateMatrix.get(0,1) + " territories");
         System.out.println("we have " + stateMatrix.get(0, 2) + " armies");
         System.out.println("our most dangerous enemy has " + stateMatrix.get(0, 3) + " armies");
-        System.out.println("our most dangerous enemy is " + stateMatrix.get(0, 4));
+        System.out.println("our most dangerous enemy is player " + stateMatrix.get(0, 4));
+
         System.out.println("Asia is " + stateMatrix.get(0, 5) + " completed");
         System.out.println("North America is " + stateMatrix.get(0, 6) + " completed");
         System.out.println("South America is " + stateMatrix.get(0, 7) + " completed");
         System.out.println("Africa is " + stateMatrix.get(0, 8) + " completed");
         System.out.println("Europe is " + stateMatrix.get(0, 9) + " completed");
         System.out.println("Australia is " + stateMatrix.get(0, 10) + " completed");
+
         System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
         System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
         System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
+
+
         System.out.println("our hand size capacity: " + stateMatrix.get(0, 14));
         System.out.println("we have " + stateMatrix.get(0, 15) + " wild cards");
         System.out.println("can trade: " + stateMatrix.get(0, 16) );
