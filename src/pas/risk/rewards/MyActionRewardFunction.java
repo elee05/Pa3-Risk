@@ -1,6 +1,7 @@
 package pas.risk.rewards;
 
 
+import edu.bu.jmat.Matrix;
 // SYSTEM IMPORTS
 import edu.bu.jmat.Pair;
 
@@ -8,6 +9,8 @@ import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.action.Action;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
+import pas.risk.senses.MyPlacementSensorArray;
+import pas.risk.senses.MyStateSensorArray;
 
 
 // JAVA PROJECT IMPORTS
@@ -51,7 +54,22 @@ public class MyActionRewardFunction
     // ! + reward for territory completion 10x then square
 
     /** {@inheritDoc} */
-    public double getStateReward(final GameView state) { return 10.0; } // this sucks you'll need to change this
+    public double getStateReward(final GameView state) { 
+
+        Double reward = 0.0;
+
+        MyStateSensorArray stateSensor = new MyStateSensorArray(this.getAgentId());
+        Matrix stateArray = stateSensor.getSensorValues(state);
+
+        // reward for owned territories: square it, run it through sigmoid
+        // minus reward for enemy territories: sum the squares of each person,
+
+        // ! self territory reward
+        reward += Math.pow(stateArray.get(0, 1), 2.0);
+
+        return reward; 
+    
+    } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
