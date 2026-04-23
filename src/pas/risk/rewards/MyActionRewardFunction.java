@@ -70,6 +70,9 @@ public class MyActionRewardFunction
         // ! army competition ratio reward
         reward += stateArray.get(0, 14);
 
+        // ! reward for self army count
+        reward += stateArray.get(0 , 2);
+
         return reward; 
     
     } // this sucks you'll need to change this

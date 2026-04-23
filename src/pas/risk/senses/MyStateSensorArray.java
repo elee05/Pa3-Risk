@@ -358,11 +358,12 @@ public class MyStateSensorArray
         System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
         System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
         System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
+        System.out.println(("our competing army ratio avg avg is " + stateMatrix.get(0,14)));
 
 
-        System.out.println("our hand size capacity: " + stateMatrix.get(0, 14));
-        System.out.println("we have " + stateMatrix.get(0, 15) + " wild cards");
-        System.out.println("can trade: " + stateMatrix.get(0, 16) );
+        System.out.println("our hand size capacity: " + stateMatrix.get(0, 15));
+        System.out.println("we have " + stateMatrix.get(0, 16) + " wild cards");
+        System.out.println("can trade: " + stateMatrix.get(0, 17) );
 
         // for (Continent c : state.getBoard().continents()) {
         //     System.out.println(c.name());
