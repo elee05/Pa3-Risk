@@ -114,6 +114,7 @@ public class MyStateSensorArray
         // ! [6] continent completion
         // ! total number of adjacent enemies(by how many of ours they touch)
         // ! total number of adjacent enemies(removing double counting)
+        // todo adjacent enmy ratio
         // ! exposed territories
 
 
