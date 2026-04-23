@@ -8,7 +8,20 @@ import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
 import edu.bu.pas.risk.territory.Territory;
+import pas.risk.senses.MyStateSensorArray;
+import pas.risk.senses.MyPlacementSensorArray;
+import edu.bu.pas.risk.territory.Continent;
 
+
+
+import edu.bu.pas.risk.util.Registry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import edu.bu.jmat.Matrix;
 
 // JAVA PROJECT IMPORTS
 
@@ -40,8 +53,84 @@ public class MyPlacementRewardFunction
     public double getLowerBound() { return 0.0; }
     public double getUpperBound() { return 100.0; }
 
+    public double sigmoid(double x) {
+        return 1.0 / (1+ Math.exp(-x));
+    }
+
     /** {@inheritDoc} */
-    public double getStateReward(final GameView state) { return 10.0; } // this sucks you'll need to change this
+    public double getStateReward(final GameView state) { 
+
+        Double reward = 0.0;
+
+        MyStateSensorArray stateSensor = new MyStateSensorArray(this.getAgentId());
+        Matrix stateArray = stateSensor.getSensorValues(state);
+
+        MyPlacementSensorArray placementSensor = new MyPlacementSensorArray(this.getAgentId());
+        Matrix placementarray = placementSensor.getSensorValues(state, 0, null);
+
+        // ? REWARD FOR COMPLETION ACROSS ALL CONTINENTS
+        Double asiaCompletion = (Double) stateArray.get(0, 5);
+        Double nAmericaCompletion = (Double) stateArray.get(0, 6);
+        Double sAmeriaCompletion = (Double) stateArray.get(0, 7);
+        Double africaCompletion = (Double) stateArray.get(0, 8);
+        Double europeCompletion = (Double) stateArray.get(0, 9);
+        Double australiaCompletion = (Double) stateArray.get(0, 10);
+
+        List<Double> continentCompletions = Arrays.asList(
+            asiaCompletion,
+            nAmericaCompletion,
+            sAmeriaCompletion,
+            africaCompletion,
+            europeCompletion,
+            australiaCompletion
+        );
+
+        Integer ourArmyGeneration = 0;
+        Double avgEnemyArmyGeneration;
+
+        Integer totalEnemyArmyGenerations = 0;
+
+        Registry<Continent> contList = state.getBoard().continents();
+
+        for (int i=0; i < continentCompletions.size();i++) {
+            Double contComp = continentCompletions.get(i);
+
+            Continent cont = contList.getById(i);
+            Integer armiesInCont = cont.armiesPerTurn();
+
+            if (contComp > 0) {
+                // ! adding reward for continent completion (0-1)
+                reward += sigmoid(Math.pow( (contComp*10), 2));
+                if (contComp == 1) {
+                    ourArmyGeneration+= armiesInCont;
+                }
+            } else if (contComp == -1) {
+                totalEnemyArmyGenerations += armiesInCont;
+            }
+        }
+
+        avgEnemyArmyGeneration = (double) totalEnemyArmyGenerations / (double) state.getNumAgents();
+        Double selfToEnemyArmyRatio = (double) ourArmyGeneration / avgEnemyArmyGeneration;
+
+        // ! adding reward for self to army ratio(0-infin)
+        // todo need to normalize
+        reward += selfToEnemyArmyRatio;
+
+
+       
+     
+
+
+
+        // TODO expected value of troop generation
+        // TODO num contesting enemies
+
+
+
+        
+        return 10.0; 
+    
+    } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
