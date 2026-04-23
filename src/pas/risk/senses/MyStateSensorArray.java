@@ -32,7 +32,7 @@ import java.util.Map;
 public class MyStateSensorArray
     extends StateSensorArray
 {
-    public static final int NUM_FEATURES = 18;
+    public static final int NUM_FEATURES = 19;
 
     public MyStateSensorArray(final int agentId)
     {
@@ -263,13 +263,23 @@ public class MyStateSensorArray
                     }
                 }
             }
-            armyCompetitionRatioTotal += (double) ourTerritoryarmies / (double) competingTerritoryArmies;
+            armyCompetitionRatioTotal += (double) ourTerritoryarmies / (double) (competingTerritoryArmies == 0 ? 1.0 : competingTerritoryArmies);
+            System.out.println("army DEBUG");
+            System.out.println("army DEBUG");
+            System.out.println("army DEBUG");
+            System.out.println("army DEBUG");
+            System.out.println("army DEBUG");
+            System.out.println("army DEBUG");
+            System.out.println("armycompratio: " + armyCompetitionRatioTotal);
+            System.out.println();
+            System.out.println();
             if (inDanger) {
                 numExposedTerritories +=1;
             }
         }
 
         Double  balancedArmyCompRatio = armyCompetitionRatioTotal / (double) state.getTerritoriesOwnedBy(this.getAgentId()).size();
+        System.out.println("balance army comp ratio: " + balancedArmyCompRatio);
         numAdj = hostileTerritories.size();
         // System.out.println();
         // System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
@@ -285,7 +295,7 @@ public class MyStateSensorArray
         stateMatrix.set(0, 11, numAdjacentHostiles);
         stateMatrix.set(0,12,numAdj);
         stateMatrix.set(0,13,numExposedTerritories);
-        stateMatrix.set(0,14,balancedArmyCompRatio);
+        stateMatrix.set(0,14,balancedArmyCompRatio );
 
 
         // playerTerritorySets.forEach((key,value) -> {
