@@ -38,6 +38,7 @@ public class MyStateSensorArray
     {
         super(agentId);
     }
+    
 
     public Matrix getSensorValues(final GameView state)
     {
