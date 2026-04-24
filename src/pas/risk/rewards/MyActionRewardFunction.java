@@ -103,7 +103,7 @@ public class MyActionRewardFunction
 
             if (contComp > 0) {
                 // ? adding reward for continent completion (0-1)
-                reward += sigmoid(Math.pow( (contComp*10), 2));
+                reward += Math.pow( (contComp*10), 2);
             }
                 
         }

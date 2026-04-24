@@ -52,8 +52,8 @@ public class MyActionSensorArray
         System.out.println();
         System.out.println();
 
-        // ? terminal flag                      0
-        // ? player id                          1
+        // ? player id                          0
+        // ? terminal flag                      1
         // ? action type flag                   2  (1:Attack, 2:Fortify,3:Redeem Cards)
         // ? ATTACK info: #armies in attack     3
         // ? ATTACK info: #armies moving        4

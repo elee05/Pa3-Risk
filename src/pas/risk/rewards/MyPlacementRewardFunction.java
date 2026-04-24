@@ -62,12 +62,17 @@ public class MyPlacementRewardFunction
 
         Double reward = 0.0;
 
+
+
         MyStateSensorArray stateSensor = new MyStateSensorArray(this.getAgentId());
         Matrix stateArray = stateSensor.getSensorValues(state);
 
         MyPlacementSensorArray placementSensor = new MyPlacementSensorArray(this.getAgentId());
         Matrix placementarray = placementSensor.getSensorValues(state, 0, null);
 
+        // ? reward for just having territories
+        reward += sigmoid(stateArray.get(0,1));
+        
         // ? REWARD FOR COMPLETION ACROSS ALL CONTINENTS
         Double asiaCompletion = (Double) stateArray.get(0, 5);
         Double nAmericaCompletion = (Double) stateArray.get(0, 6);

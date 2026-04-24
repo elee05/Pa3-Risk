@@ -64,7 +64,8 @@ public class MyPlacementSensorArray
 
         // continent completion level
         Continent c = territory.continent();
-        int myCount = 0, total = 0;
+        int myCount = 0;
+        int total = 0;
         for (Territory t : c) {
             total++;
             TerritoryOwnerView tTov = state.getTerritoryOwners().getById(t.id());
