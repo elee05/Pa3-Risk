@@ -35,12 +35,14 @@
 
 # Reward Functions
 ## Action Rewards
-### Territory Count rewards
+#### Territory Count rewards
 - positive reward for squared territories owned
 - negativ reward for squared enemy territories owned
-### Continent Completion Rewards
+#### Continent Completion Rewards
 - positive reward for each square completion of continent
-### Army Rewards
+#### Army Rewards
 - positive reward for army count(nomralized using sigmoid function
 - reward based on army ratio between our exposed territories(averaged and then summed using sigmmoid)
+
+## Placement Rewards
 
