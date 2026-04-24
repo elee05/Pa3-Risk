@@ -67,11 +67,13 @@ public class MyPlacementRewardFunction
         MyStateSensorArray stateSensor = new MyStateSensorArray(this.getAgentId());
         Matrix stateArray = stateSensor.getSensorValues(state);
 
-        MyPlacementSensorArray placementSensor = new MyPlacementSensorArray(this.getAgentId());
-        Matrix placementarray = placementSensor.getSensorValues(state, 0, null);
+        // MyPlacementSensorArray placementSensor = new MyPlacementSensorArray(this.getAgentId());
+        // Matrix placementarray = placementSensor.getSensorValues(state, 0, null);
 
         // ? reward for just having territories
-        reward += sigmoid(stateArray.get(0,1));
+        Double territoryReward = (double) stateArray.get(0,1) / 42.0;
+        reward += territoryReward;
+        System.out.println("reward for territory count(" + stateArray.get(0,1) + "): " + territoryReward);
         
         // ? REWARD FOR COMPLETION ACROSS ALL CONTINENTS
         Double asiaCompletion = (Double) stateArray.get(0, 5);
@@ -105,7 +107,8 @@ public class MyPlacementRewardFunction
 
             if (contComp > 0) {
                 // ! adding reward for continent completion (0-1)
-                reward += sigmoid(Math.pow( (contComp*10), 2));
+                reward += Math.pow( (contComp), 2);
+                System.out.println("reward for continent completion of " + cont.name() +  "(" + contComp + "): " + Math.pow( (contComp), 2)) ;
                 if (contComp == 1) {
                     ourArmyGeneration+= armiesInCont;
                 }
@@ -113,13 +116,23 @@ public class MyPlacementRewardFunction
                 totalEnemyArmyGenerations += armiesInCont;
             }
         }
+        System.out.println();
+        System.out.println();
+        System.out.println("reward finished cont loop");
+        System.out.println();
+        System.out.println();
 
         avgEnemyArmyGeneration = (double) totalEnemyArmyGenerations / (double) state.getNumAgents();
-        Double selfToEnemyArmyRatio = (double) ourArmyGeneration / avgEnemyArmyGeneration;
+        Double selfToEnemyArmyRatio = (double) ourArmyGeneration / Math.max(avgEnemyArmyGeneration, 1);
 
         // ! adding reward for self to army ratio(0-infin)
         // todo need to normalize
+        System.out.println("current reward for territories and cont completion: " + reward);
         reward += selfToEnemyArmyRatio;
+        System.out.println("reward, ourArmyGeneration: " + ourArmyGeneration);
+        System.out.println("reard, avgEnemyArmyGeneration: " + avgEnemyArmyGeneration);
+        System.out.println("reward, selfToEnemyArmyRatio value: " + selfToEnemyArmyRatio);
+        
 
 
        
@@ -132,19 +145,27 @@ public class MyPlacementRewardFunction
 
 
 
-        
-        return 10.0; 
+        System.out.println("TOTAL reward: " + reward);
+        return reward; 
     
     } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
-                                          final Territory action) { return Double.NEGATIVE_INFINITY; }
+                                          final Territory action) { 
+                                            
+        // return Double.NEGATIVE_INFINITY; 
+        return 0.0;
+    }
 
     /** {@inheritDoc} */
     public double getFullTransitionReward(final GameView state,
                                           final Territory action,
-                                          final GameView nextState) { return Double.NEGATIVE_INFINITY; }
+                                          final GameView nextState) { 
+                                            
+        // return Double.NEGATIVE_INFINITY; 
+        return 0.0;
+    }
 
 }
 

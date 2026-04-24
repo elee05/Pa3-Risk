@@ -34,7 +34,7 @@ public class MyPlacementSensorArray
                                   final int numRemainingArmies,
                                   final Territory territory)
     {
-        Matrix m = Matrix.zeros(0, NUM_FEATURES);
+        Matrix m = Matrix.zeros(1, NUM_FEATURES);
 
         // armies already in territory
         TerritoryOwnerView tov = state.getTerritoryOwners().getById(territory.id());
