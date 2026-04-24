@@ -72,6 +72,7 @@ public class MyPlacementRewardFunction
 
         // ? reward for just having territories
         Double territoryReward = (double) stateArray.get(0,1) / 42.0;
+        // System.out.println("territory reward: " + (double) stateArray.get(0,1) / 42.0);
         reward += territoryReward;
         System.out.println("reward for territory count(" + stateArray.get(0,1) + "): " + territoryReward);
         
