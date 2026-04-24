@@ -39,17 +39,9 @@ public class MyActionSensorArray
         //return Matrix.randn(1, NUM_FEATURES); // row vector
 
         System.out.println();
-        System.out.println();
-        System.out.println();
 
         System.out.println("getACTIONSensorValues called");
-        System.out.println("getACTIONSensorValues called");
-        System.out.println("getACTIONSensorValues called");
-        System.out.println("getACTIONSensorValues called");
-        System.out.println("getACTIONSensorValues called");
 
-        System.out.println();
-        System.out.println();
         System.out.println();
 
         // ? player id                          0
@@ -75,8 +67,9 @@ public class MyActionSensorArray
             System.out.println("action is of type: ATTACK");
 
             actionMatrix.set(0,2,1); // flag for attacking
-            actionMatrix.set(0,3,a.attackingArmies());
-            actionMatrix.set(0,4,a.movingArmies());
+
+            // actionMatrix.set(0,3,a.attackingArmies());
+            // actionMatrix.set(0,4,a.movingArmies());
 
             Territory from  = a.from();
             Territory to = a.to();
@@ -90,7 +83,7 @@ public class MyActionSensorArray
                 }
             }
 
-            float armyRatio = (float) a.attackingArmies() / (float) defendingArmies;
+            float armyRatio = (float) a.attackingArmies() / (float) (defendingArmies == 0 ? 1.0 : defendingArmies);
             
             actionMatrix.set(0,5,armyRatio);
 

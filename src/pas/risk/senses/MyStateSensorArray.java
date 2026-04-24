@@ -61,8 +61,8 @@ public class MyStateSensorArray
 
             playerArmyCount.put(tov.getOwner(),playerArmyCount.getOrDefault(tov.getOwner(), 0) + tov.getArmies());
         }   
-        System.out.println();
-        System.out.println();
+        // System.out.println();
+        // System.out.println();
 
 
 
@@ -154,7 +154,7 @@ public class MyStateSensorArray
                 playerContinentCompletionMap.get(sTViewPlayer).getOrDefault(sTViewCont, 0) + 1);
         }
         //  System.out.println("playerContinentCompletionMap: ");
-        System.out.println();
+        // System.out.println();
 
 
 
@@ -264,22 +264,25 @@ public class MyStateSensorArray
                 }
             }
             armyCompetitionRatioTotal += (double) ourTerritoryarmies / (double) (competingTerritoryArmies == 0 ? 1.0 : competingTerritoryArmies);
-            System.out.println("army DEBUG");
-            System.out.println("army DEBUG");
-            System.out.println("army DEBUG");
-            System.out.println("army DEBUG");
-            System.out.println("army DEBUG");
-            System.out.println("army DEBUG");
-            System.out.println("armycompratio: " + armyCompetitionRatioTotal);
-            System.out.println();
-            System.out.println();
+            // System.out.println("army DEBUG");
+            // System.out.println("army DEBUG");
+            // System.out.println("army DEBUG");
+            // System.out.println("army DEBUG");
+            // System.out.println("army DEBUG");
+            // System.out.println("army DEBUG");
+            // System.out.println("armycompratio: " + armyCompetitionRatioTotal);
+            // System.out.println();
+            // System.out.println();
             if (inDanger) {
                 numExposedTerritories +=1;
             }
         }
 
         Double  balancedArmyCompRatio = armyCompetitionRatioTotal / (double) state.getTerritoriesOwnedBy(this.getAgentId()).size();
-        System.out.println("balance army comp ratio: " + balancedArmyCompRatio);
+        if (Double.isNaN(balancedArmyCompRatio)) {
+            balancedArmyCompRatio = 1.0;
+        }
+        // System.out.println("balance army comp ratio: " + balancedArmyCompRatio);
         numAdj = hostileTerritories.size();
         // System.out.println();
         // System.out.println("num adjacent hostiles: " + numAdjacentHostiles);
@@ -353,33 +356,44 @@ public class MyStateSensorArray
         // for (IAgent ia : iAList) {
         //     System.out.println("agent " + ia.agentId());
         // }
-        System.out.println("we own " + stateMatrix.get(0, 0) + " continents");
-        System.out.println("we own " + stateMatrix.get(0,1) + " territories");
-        System.out.println("we have " + stateMatrix.get(0, 2) + " armies");
-        System.out.println("our most dangerous enemy has " + stateMatrix.get(0, 3) + " armies");
-        System.out.println("our most dangerous enemy is player " + stateMatrix.get(0, 4));
+        
 
-        System.out.println("Asia is " + stateMatrix.get(0, 5) + " completed");
-        System.out.println("North America is " + stateMatrix.get(0, 6) + " completed");
-        System.out.println("South America is " + stateMatrix.get(0, 7) + " completed");
-        System.out.println("Africa is " + stateMatrix.get(0, 8) + " completed");
-        System.out.println("Europe is " + stateMatrix.get(0, 9) + " completed");
-        System.out.println("Australia is " + stateMatrix.get(0, 10) + " completed");
+        // ! ************************
+        // System.out.println("we own " + stateMatrix.get(0, 0) + " continents");
+        // System.out.println("we own " + stateMatrix.get(0,1) + " territories");
+        // System.out.println("we have " + stateMatrix.get(0, 2) + " armies");
+        // System.out.println("our most dangerous enemy has " + stateMatrix.get(0, 3) + " armies");
+        // System.out.println("our most dangerous enemy is player " + stateMatrix.get(0, 4));
 
-        System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
-        System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
-        System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
-        System.out.println(("our competing army ratio avg avg is " + stateMatrix.get(0,14)));
+        // System.out.println("Asia is " + stateMatrix.get(0, 5) + " completed");
+        // System.out.println("North America is " + stateMatrix.get(0, 6) + " completed");
+        // System.out.println("South America is " + stateMatrix.get(0, 7) + " completed");
+        // System.out.println("Africa is " + stateMatrix.get(0, 8) + " completed");
+        // System.out.println("Europe is " + stateMatrix.get(0, 9) + " completed");
+        // System.out.println("Australia is " + stateMatrix.get(0, 10) + " completed");
+
+        // System.out.println("there are " + stateMatrix.get(0, 11) + " threat points to us");
+        // System.out.println("there are " + stateMatrix.get(0, 12) + " enemy territories in contact with us");
+        // System.out.println(stateMatrix.get(0, 13) + " of our territories are in contact with enemies");
+        // System.out.println(("our competing army ratio avg avg is " + stateMatrix.get(0,14)));
 
 
-        System.out.println("our hand size capacity: " + stateMatrix.get(0, 15));
-        System.out.println("we have " + stateMatrix.get(0, 16) + " wild cards");
-        System.out.println("can trade: " + stateMatrix.get(0, 17) );
+        // System.out.println("our hand size capacity: " + stateMatrix.get(0, 15));
+        // System.out.println("we have " + stateMatrix.get(0, 16) + " wild cards");
+        // System.out.println("can trade: " + stateMatrix.get(0, 17) );
+        // ! ********************************************
 
         // for (Continent c : state.getBoard().continents()) {
         //     System.out.println(c.name());
         // }
         System.out.println();
+
+        
+        List<IAgent> agents = state.getAgents();
+        System.out.println("there are " + agents.size() +  "agents playing the game");
+        for (IAgent ia : agents) {
+            System.out.println("agents: " + ia.agentId());
+        }
         
         System.out.println("stateMatrix: " + stateMatrix.toString());
         return stateMatrix;  // row vector
@@ -387,11 +401,6 @@ public class MyStateSensorArray
 
     public static void main(String[] args) {
         MyStateSensorArray sensor = new MyStateSensorArray(0);
-        System.out.println("sensor class message");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
         // you can't easily construct a GameView manually,
         // so the real test has to go through SingleGameEval or SequentialTrain
     }

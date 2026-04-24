@@ -34,6 +34,7 @@ public class MyPlacementSensorArray
                                   final int numRemainingArmies,
                                   final Territory territory)
     {
+        System.out.println("get placement sensor array called");
         Matrix m = Matrix.zeros(1, NUM_FEATURES);
 
         // armies already in territory

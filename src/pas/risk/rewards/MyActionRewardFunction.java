@@ -39,6 +39,8 @@ public class MyActionRewardFunction
 
     public MyActionRewardFunction(final int agentId)
     {
+        
+        
         super(RewardType.STATE, agentId); // change this enum if you don't want to do R(s)
     }
 
@@ -67,6 +69,26 @@ public class MyActionRewardFunction
 
     /** {@inheritDoc} */
     public double getStateReward(final GameView state) { 
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("getstatereward from actionRewardFunction called");
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
         Double reward = 0.0;
 
@@ -77,7 +99,8 @@ public class MyActionRewardFunction
         // minus reward for enemy territories: sum the squares of each person,
 
         // ! self territory reward
-        reward += Math.pow(stateArray.get(0, 1), 2.0);
+        reward += (double) stateArray.get(0, 1) / 42.0;
+        System.out.println("actionreward for TERRITORIES(" + stateArray.get(0, 1) +  "): " + reward);
 
         // ! territory completion fraction
 
@@ -98,36 +121,59 @@ public class MyActionRewardFunction
             australiaCompletion
         );
 
+        System.out.println("actionreward space");
+        // System.out.println("interim actionreward: " + reward);
+
         for (int i=0; i < continentCompletions.size();i++) {
             Double contComp = continentCompletions.get(i);
 
             if (contComp > 0) {
                 // ? adding reward for continent completion (0-1)
-                reward += Math.pow( (contComp*10), 2);
+                Double contReward = Math.pow( (contComp), 2);
+                reward += contReward;
+                // System.out.println("(actionreward) adding " + contReward + " for continent completion(" + i + ")" + contComp );
+                // System.out.println("actionreward after cont comp singular added: " + reward);
             }
                 
         }
+        System.err.println("actionreward for territories + contcomp : " + reward);
 
 
 
         // ! army competition ratio reward
         reward += sigmoid(stateArray.get(0, 14));
 
+        System.out.println("actionr");
+
         // ! reward for self army count
         reward += sigmoid(stateArray.get(0 , 2));
 
+        System.out.println("actionreward ending space");
+        System.out.println("actionreward ending space");
+
+        // ! reward for winning the game
+        if (state.isOver()) {
+            reward += 100;
+        }
         return reward; 
     
     } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
-                                          final Action action) { return Double.NEGATIVE_INFINITY; }
+                                          final Action action) { 
+        // return Double.NEGATIVE_INFINITY; 
+        return 0.0;
+    
+    }
 
     /** {@inheritDoc} */
     public double getFullTransitionReward(final GameView state,
                                           final Action action,
-                                          final GameView nextState) { return Double.NEGATIVE_INFINITY; }
+                                          final GameView nextState) { 
+        // return Double.NEGATIVE_INFINITY; 
+        return 0.0;
+    }
 
 }
 
