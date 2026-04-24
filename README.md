@@ -10,9 +10,9 @@
 9. Africa Completion
 10. Europe Completion
 11. Australia Completion
-12. # of hostile territories adjacent to us
-13. # of hostile territories adjacent to us (double counting removed)
-14. # of our territories adjacent to enemy territories
+12. number of hostile territories adjacent to us
+13. number of hostile territories adjacent to us (double counting removed)
+14. number of our territories adjacent to enemy territories
 15. avg ratio between armies in our exposed territories
 16. our hand size
 17. how many cards are wild
