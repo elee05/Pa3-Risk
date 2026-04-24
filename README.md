@@ -1,4 +1,4 @@
-#StateSensor
+# StateSensor
 1. self continent count
 2. self territory count
 3. self army count
@@ -17,5 +17,5 @@
 16. our hand size
 17. how many cards are wild
 18. how many cards we can trade
-#ActionSensor
-#PlacementSensor
+# ActionSensor
+# PlacementSensor
