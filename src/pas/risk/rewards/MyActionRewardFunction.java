@@ -1,23 +1,16 @@
 package pas.risk.rewards;
 
 
-import java.util.Arrays;
-import java.util.List;
-
-import edu.bu.jmat.Matrix;
 // SYSTEM IMPORTS
-import edu.bu.jmat.Pair;
-
 import edu.bu.pas.risk.GameView;
+import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.action.Action;
+import edu.bu.pas.risk.action.AttackAction;
+import edu.bu.pas.risk.action.NoAction;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
 import edu.bu.pas.risk.territory.Continent;
-import pas.risk.senses.MyPlacementSensorArray;
-import pas.risk.senses.MyStateSensorArray;
-
-import edu.bu.pas.risk.TerritoryOwnerView;
-import edu.bu.pas.risk.util.Registry;
+import edu.bu.pas.risk.territory.Territory;
 
 
 // JAVA PROJECT IMPORTS
@@ -36,143 +29,297 @@ import edu.bu.pas.risk.util.Registry;
 public class MyActionRewardFunction
     extends RewardFunction<Action>
 {
+    private static final double TERRITORY_DELTA_WEIGHT = 20.0;
+    private static final double CONTINENT_DELTA_WEIGHT = 60.0;
+    private static final double ARMY_SHARE_DELTA_WEIGHT = 35.0;
+    private static final double STRONGEST_OPPONENT_ARMY_SHARE_DELTA_WEIGHT = 20.0;
+    private static final double CONTINENT_COMPLETION_DELTA_WEIGHT = 45.0;
+    private static final double BORDER_VULNERABILITY_DELTA_WEIGHT = 25.0;
+    private static final double SUCCESSFUL_ATTACK_BONUS = 12.0;
+    private static final double FAILED_COSTLY_ATTACK_WEIGHT = 40.0;
+    private static final double BREAK_OPPONENT_CONTINENT_WEIGHT = 25.0;
+    private static final double NO_ACTION_WHEN_ATTACK_AVAILABLE_PENALTY = 15.0;
+    private static final double TURN_TAX_PER_TURN = 30.0;
 
     public MyActionRewardFunction(final int agentId)
     {
-        
-        
-        super(RewardType.STATE, agentId); // change this enum if you don't want to do R(s)
+        super(RewardType.FULL_TRANSITION, agentId);
     }
 
-    public double getLowerBound() { return 0.0; }
+    private static double safeDivide(final double numerator,
+                                     final double denominator)
+    {
+        return denominator == 0.0 ? 0.0 : numerator / denominator;
+    }
+
+    private double clamp(final double value)
+    {
+        return Math.max(this.getLowerBound(), Math.min(this.getUpperBound(), value));
+    }
+
+    private double positivePart(final double value)
+    {
+        return Math.max(0.0, value);
+    }
+
+    private TerritoryOwnerView getOwnerView(final GameView state,
+                                            final Territory territory)
+    {
+        return state.getTerritoryOwners().get(territory);
+    }
+
+    private boolean isMine(final GameView state,
+                           final Territory territory)
+    {
+        return this.getOwnerView(state, territory).getOwner() == this.getAgentId();
+    }
+
+    private boolean isEnemy(final GameView state,
+                            final Territory territory)
+    {
+        final TerritoryOwnerView ownerView = this.getOwnerView(state, territory);
+        return ownerView.getOwner() != this.getAgentId() && !ownerView.isUnclaimed();
+    }
+
+    private int countTerritories(final GameView state,
+                                 final int agentId)
+    {
+        return state.getTerritoriesOwnedBy(agentId).size();
+    }
+
+    private int countArmies(final GameView state,
+                            final int agentId)
+    {
+        int total = 0;
+        for(final TerritoryOwnerView ownerView : state.getTerritoryOwners())
+        {
+            if(ownerView.getOwner() == agentId)
+            {
+                total += ownerView.getArmies();
+            }
+        }
+        return total;
+    }
+
+    private int countContinents(final GameView state,
+                                final int agentId)
+    {
+        return state.getContinentsOwnedBy(agentId).size();
+    }
+
+    private int countFavorableAttacks(final GameView state)
+    {
+        int count = 0;
+        for(final Territory territory : state.getTerritoriesOwnedBy(this.getAgentId()))
+        {
+            if(!this.isMine(state, territory))
+            {
+                continue;
+            }
+
+            final int myArmies = this.getOwnerView(state, territory).getArmies();
+            if(myArmies <= 1)
+            {
+                continue;
+            }
+
+            for(final Territory adjacent : territory.adjacentTerritories())
+            {
+                if(this.isEnemy(state, adjacent) &&
+                   this.getOwnerView(state, adjacent).getArmies() < myArmies)
+                {
+                    count += 1;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int countTotalArmies(final GameView state)
+    {
+        int total = 0;
+        for(final TerritoryOwnerView ownerView : state.getTerritoryOwners())
+        {
+            total += ownerView.getArmies();
+        }
+        return total;
+    }
+
+    private double getContinentCompletionScore(final GameView state)
+    {
+        double score = 0.0;
+
+        for(final Continent continent : state.getBoard().continents())
+        {
+            int ownedTerritories = 0;
+            final int continentSize = continent.territories().size();
+
+            for(final Territory territory : continent.territories())
+            {
+                if(this.isMine(state, territory))
+                {
+                    ownedTerritories += 1;
+                }
+            }
+
+            final double completion = safeDivide(ownedTerritories, continentSize);
+            if(completion > 0.0)
+            {
+                score += Math.pow(completion, 2);
+            }
+        }
+
+        return score;
+    }
+
+    private double getStrongestOpponentArmyShare(final GameView state)
+    {
+        final int totalArmies = this.countTotalArmies(state);
+        double strongestShare = 0.0;
+
+        for(int agentId = 0; agentId < state.getNumAgents(); ++agentId)
+        {
+            if(agentId == this.getAgentId())
+            {
+                continue;
+            }
+
+            strongestShare = Math.max(strongestShare,
+                                      safeDivide(this.countArmies(state, agentId), totalArmies));
+        }
+
+        return strongestShare;
+    }
+
+    private int countTotalEnemyContinents(final GameView state)
+    {
+        int total = 0;
+
+        for(int agentId = 0; agentId < state.getNumAgents(); ++agentId)
+        {
+            if(agentId == this.getAgentId())
+            {
+                continue;
+            }
+
+            total += this.countContinents(state, agentId);
+        }
+
+        return total;
+    }
+
+    private int countVulnerableTerritories(final GameView state)
+    {
+        int vulnerable = 0;
+
+        for(final Territory territory : state.getTerritoriesOwnedBy(this.getAgentId()))
+        {
+            int myArmies = this.getOwnerView(state, territory).getArmies();
+            int adjacentEnemyArmies = 0;
+            boolean hasEnemyNeighbor = false;
+
+            for(final Territory adjacent : territory.adjacentTerritories())
+            {
+                if(this.isEnemy(state, adjacent))
+                {
+                    hasEnemyNeighbor = true;
+                    adjacentEnemyArmies += this.getOwnerView(state, adjacent).getArmies();
+                }
+            }
+
+            if(hasEnemyNeighbor && adjacentEnemyArmies > myArmies)
+            {
+                vulnerable += 1;
+            }
+        }
+
+        return vulnerable;
+    }
+
+    private double getBorderVulnerabilityRatio(final GameView state)
+    {
+        return safeDivide(this.countVulnerableTerritories(state),
+                          this.countTerritories(state, this.getAgentId()));
+    }
+
+    public double getLowerBound() { return -100.0; }
     public double getUpperBound() { return 100.0; }
 
-    // todo R(s) # territories owned+ get a reward (square)
-    // how many t other own
-    // # armies owned relative to others
-    // + reward for a higher diff(sum all diffs(army ratio))
-    // - reward for higher enemy territory count(sum the square of each person territories
-    // + reward for higher own ar count
-    // + reward for higher troop count
-
-    // + reward for territory completion (x10 then square)
-
-    // ! squared +- reward for territories
-    // ! +- for difference in adjacent armies
-    // ! + reward for high army count
-    // ! + reward for territory completion 10x then square
-
-    public double sigmoid(double x) {
-        return 1.0 / (1+ Math.exp(-x));
-    }
-
-
     /** {@inheritDoc} */
-    public double getStateReward(final GameView state) { 
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("getstatereward from actionRewardFunction called");
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-
-        Double reward = 0.0;
-
-        MyStateSensorArray stateSensor = new MyStateSensorArray(this.getAgentId());
-        Matrix stateArray = stateSensor.getSensorValues(state);
-
-        // reward for owned territories: square it, run it through sigmoid
-        // minus reward for enemy territories: sum the squares of each person,
-
-        // ! self territory reward
-        reward += (double) stateArray.get(0, 1) / 42.0;
-        System.out.println("actionreward for TERRITORIES(" + stateArray.get(0, 1) +  "): " + reward);
-
-        // ! territory completion fraction
-
-        // ? REWARD FOR COMPLETION ACROSS ALL CONTINENTS
-        Double asiaCompletion = (Double) stateArray.get(0, 5);
-        Double nAmericaCompletion = (Double) stateArray.get(0, 6);
-        Double sAmeriaCompletion = (Double) stateArray.get(0, 7);
-        Double africaCompletion = (Double) stateArray.get(0, 8);
-        Double europeCompletion = (Double) stateArray.get(0, 9);
-        Double australiaCompletion = (Double) stateArray.get(0, 10);
-
-        List<Double> continentCompletions = Arrays.asList(
-            asiaCompletion,
-            nAmericaCompletion,
-            sAmeriaCompletion,
-            africaCompletion,
-            europeCompletion,
-            australiaCompletion
-        );
-
-        System.out.println("actionreward space");
-        // System.out.println("interim actionreward: " + reward);
-
-        for (int i=0; i < continentCompletions.size();i++) {
-            Double contComp = continentCompletions.get(i);
-
-            if (contComp > 0) {
-                // ? adding reward for continent completion (0-1)
-                Double contReward = Math.pow( (contComp), 2);
-                reward += contReward;
-                // System.out.println("(actionreward) adding " + contReward + " for continent completion(" + i + ")" + contComp );
-                // System.out.println("actionreward after cont comp singular added: " + reward);
-            }
-                
-        }
-        System.err.println("actionreward for territories + contcomp : " + reward);
-
-
-
-        // ! army competition ratio reward
-        reward += sigmoid(stateArray.get(0, 14));
-
-        System.out.println("actionr");
-
-        // ! reward for self army count
-        reward += sigmoid(stateArray.get(0 , 2));
-
-        System.out.println("actionreward ending space");
-        System.out.println("actionreward ending space");
-
-        // ! reward for winning the game
-        if (state.isOver()) {
-            reward += 100;
-        }
-        return reward; 
-    
-    } // this sucks you'll need to change this
+    public double getStateReward(final GameView state) { return Double.NEGATIVE_INFINITY; }
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
-                                          final Action action) { 
-        // return Double.NEGATIVE_INFINITY; 
-        return 0.0;
-    
-    }
+                                          final Action action) { return Double.NEGATIVE_INFINITY; }
 
     /** {@inheritDoc} */
     public double getFullTransitionReward(final GameView state,
                                           final Action action,
-                                          final GameView nextState) { 
-        // return Double.NEGATIVE_INFINITY; 
-        return 0.0;
+                                          final GameView nextState)
+    {
+        double reward = 0.0;
+
+        final int myTerritoriesBefore = this.countTerritories(state, this.getAgentId());
+        final int myTerritoriesAfter = this.countTerritories(nextState, this.getAgentId());
+        final int myArmiesBefore = this.countArmies(state, this.getAgentId());
+        final int myArmiesAfter = this.countArmies(nextState, this.getAgentId());
+        final int myContinentsBefore = this.countContinents(state, this.getAgentId());
+        final int myContinentsAfter = this.countContinents(nextState, this.getAgentId());
+        final int totalArmiesBefore = this.countTotalArmies(state);
+        final int totalArmiesAfter = this.countTotalArmies(nextState);
+        final int enemyContinentsBefore = this.countTotalEnemyContinents(state);
+        final int enemyContinentsAfter = this.countTotalEnemyContinents(nextState);
+
+        final double armyShareBefore = safeDivide(myArmiesBefore, totalArmiesBefore);
+        final double armyShareAfter = safeDivide(myArmiesAfter, totalArmiesAfter);
+        final double strongestOpponentArmyShareBefore = this.getStrongestOpponentArmyShare(state);
+        final double strongestOpponentArmyShareAfter = this.getStrongestOpponentArmyShare(nextState);
+        final double continentCompletionBefore = this.getContinentCompletionScore(state);
+        final double continentCompletionAfter = this.getContinentCompletionScore(nextState);
+        final double borderVulnerabilityBefore = this.getBorderVulnerabilityRatio(state);
+        final double borderVulnerabilityAfter = this.getBorderVulnerabilityRatio(nextState);
+
+        final int territoryDelta = myTerritoriesAfter - myTerritoriesBefore;
+        final int continentDelta = myContinentsAfter - myContinentsBefore;
+        final int armyLoss = Math.max(0, myArmiesBefore - myArmiesAfter);
+        final double territoryComponent = TERRITORY_DELTA_WEIGHT * territoryDelta;
+        final double continentComponent = CONTINENT_DELTA_WEIGHT * continentDelta;
+        final double armyShareComponent = ARMY_SHARE_DELTA_WEIGHT * (armyShareAfter - armyShareBefore);
+        final double strongestOpponentComponent = STRONGEST_OPPONENT_ARMY_SHARE_DELTA_WEIGHT
+            * (strongestOpponentArmyShareBefore - strongestOpponentArmyShareAfter);
+        final double continentCompletionComponent =
+            CONTINENT_COMPLETION_DELTA_WEIGHT * (continentCompletionAfter - continentCompletionBefore);
+        final double borderVulnerabilityComponent =
+            BORDER_VULNERABILITY_DELTA_WEIGHT * (borderVulnerabilityBefore - borderVulnerabilityAfter);
+        final double successfulAttackComponent =
+            (action instanceof AttackAction && territoryDelta > 0) ? SUCCESSFUL_ATTACK_BONUS : 0.0;
+        final double failedCostlyAttackPenalty =
+            (action instanceof AttackAction && territoryDelta <= 0 && armyLoss > 0)
+                ? FAILED_COSTLY_ATTACK_WEIGHT * safeDivide(armyLoss, totalArmiesBefore)
+                : 0.0;
+        final double breakOpponentContinentComponent =
+            BREAK_OPPONENT_CONTINENT_WEIGHT * positivePart(enemyContinentsBefore - enemyContinentsAfter);
+        final double noActionPenalty =
+            (action instanceof NoAction && this.countFavorableAttacks(state) > 0)
+                ? NO_ACTION_WHEN_ATTACK_AVAILABLE_PENALTY
+                : 0.0;
+        final double turnTaxPenalty =
+            TURN_TAX_PER_TURN;
+
+        reward += territoryComponent;
+        reward += continentComponent;
+        reward += armyShareComponent;
+        reward += strongestOpponentComponent;
+        reward += continentCompletionComponent;
+        reward += borderVulnerabilityComponent;
+        reward += successfulAttackComponent;
+        reward -= failedCostlyAttackPenalty;
+        reward += breakOpponentContinentComponent;
+        reward -= noActionPenalty;
+        reward -= turnTaxPenalty;
+
+        final double finalReward = this.clamp(reward);
+        return finalReward;
     }
 
 }
